@@ -12,6 +12,37 @@ const rollReg = {
 };
 
 export const actions = {
+  newIssue: {
+    fields: {
+      lockerTag: { value: 'inbox', type: 'string' },
+      name: { type: 'string', value: '' },
+      //choice, choice, choice, ...
+      proposals: {
+        type: 'set',
+        value: "",
+      },
+      issueURI: {
+        type: 'uri',
+        value: 'rho:id:wqcedk93naqxunhmhjdmk9qgg88o9d1aak8kpy4mqe618ow6bgxpg5'
+      },
+    },
+    template:
+    `
+    new lookupCh, bCh, lookup(\`rho:registry:lookup\`), 
+    return(\`rho:rchain:deployId\`),
+    deployerId(\`rho:rchain:deployerId\`) in { 
+      lookup!(issueURI, *lookupCh) | 
+      for(Issue <- lookupCh) { 
+        Issue!(proposals, *bCh) | 
+        for(admin, tally <- bCh) {
+	  for (@{"inbox": *inbox, ..._} <<- @[*deployerId, lockerTag]) {
+             inbox!(["issue", name, {"admin": *admin, "tally": *tally}], *return)
+          }
+        }
+      }
+    }
+    `,
+  },
   newMemberDirectory: {
     fields: {
       contractURI: {
